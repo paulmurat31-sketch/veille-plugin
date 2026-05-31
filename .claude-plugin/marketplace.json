@@ -1,0 +1,32 @@
+{
+  "name": "veille-plugin",
+  "owner": {
+    "name": "Veille plugin"
+  },
+  "description": "Marketplace mono-plugin hébergeant Veille — un plugin de veille réglementaire pour juristes.",
+  "version": "0.1.0",
+  "plugins": [
+    {
+      "name": "veille",
+      "displayName": "Veille réglementaire",
+      "description": "Veille réglementaire personnelle pour juristes — profil, sweep de sources publiques, digest classé par priorité, courriels prêts à envoyer.",
+      "source": "./",
+      "category": "legal",
+      "tags": [
+        "regulatory",
+        "watch",
+        "compliance",
+        "legal",
+        "juridique",
+        "canada"
+      ],
+      "keywords": [
+        "veille",
+        "regulatory",
+        "compliance",
+        "legal",
+        "juridique"
+      ]
+    }
+  ]
+}

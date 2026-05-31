@@ -1,0 +1,328 @@
+{
+  "$schema_doc": "Registre des sources de veille réglementaire. Chargé par le skill regulatory-watch au démarrage. L'utilisateur peut en désactiver, en ajouter, ou en éditer dans ~/.veille/sources.json (qui surcharge ce fichier).",
+  "schema_version": 1,
+  "last_sweep_iso": "2026-05-31",
+  "last_sweep_notes": "Sweep curl + WebFetch des 32 URLs. Voir NOTES.md pour les détails par source.",
+  "sources": [
+    {
+      "id": "legisinfo",
+      "name": "LEGISinfo — Projets de loi fédéraux (récents)",
+      "jurisdiction": "CA_FED",
+      "url": "https://www.parl.ca/legisinfo/en/overview/json/recentlyintroduced",
+      "adapter_type": "api",
+      "reliability": "core",
+      "enabled_by_default": true,
+      "fetch_notes": "Endpoint JSON public sans clé, retourne un array des bills récemment introduits (Sénat + Chambre). Items bilingues dans le même objet: LongTitleEn / LongTitleFr, ShortTitleEn / ShortTitleFr, StatusNameEn / StatusNameFr, NumberCode (ex: S-248, C-7). Clé de dédup: Id ou NumberCode + ParlSession. Note: l'ancienne URL /en/bills/json a été redirigée vers /en/overview en mai 2026 ; le bon endpoint est maintenant sous /overview/json/recentlyintroduced. Variante XML: /overview/xml/recentlyintroduced."
+    },
+    {
+      "id": "gazette_ca_part1",
+      "name": "Gazette du Canada — Partie I (consultations et projets de règlement)",
+      "jurisdiction": "CA_FED",
+      "url": "https://www.gazette.gc.ca/rss/p1-fra.xml",
+      "adapter_type": "rss",
+      "reliability": "core",
+      "enabled_by_default": true,
+      "fetch_notes": "Flux RSS officiel TPSGC. Chaque item = une édition hebdomadaire (vol/n°). Pour le contenu fin, suivre le lien de l'item et parser la TOC HTML. Clé de dédup: <guid> ou <link>. Redirige www.gazette.gc.ca vers gazette.gc.ca, c'est attendu."
+    },
+    {
+      "id": "gazette_ca_part2",
+      "name": "Gazette du Canada — Partie II (règlements publiés)",
+      "jurisdiction": "CA_FED",
+      "url": "https://www.gazette.gc.ca/rss/p2-fra.xml",
+      "adapter_type": "rss",
+      "reliability": "core",
+      "enabled_by_default": true,
+      "fetch_notes": "Flux RSS officiel TPSGC, publication bi-mensuelle. Chaque item = une édition. Pour lister les règlements individuels, parser la TOC HTML de l'édition. Clé de dédup: <guid>."
+    },
+    {
+      "id": "consultations_ca",
+      "name": "Consultations gouvernementales du Canada",
+      "jurisdiction": "CA_FED",
+      "url": "https://open.canada.ca/static/current_consultations_open.csv",
+      "adapter_type": "api",
+      "reliability": "core",
+      "enabled_by_default": true,
+      "fetch_notes": "CSV dataset officiel — consultations ouvertes des deux dernières années. Colonnes incluent titre FR/EN, ministère, date d'ouverture/clôture, URL. Clé de dédup: la colonne ID ou URL. Alternative CKAN: https://open.canada.ca/data/en/api/3/action/package_show?id=current-consultations."
+    },
+    {
+      "id": "open_gov_ca",
+      "name": "Open Government Canada — Jeux de données « regulation »",
+      "jurisdiction": "CA_FED",
+      "url": "https://open.canada.ca/data/en/api/3/action/package_search?q=regulation",
+      "adapter_type": "api",
+      "reliability": "core",
+      "enabled_by_default": true,
+      "fetch_notes": "API CKAN standard. Pagination via rows/start (max 1000 rows). Réponse JSON: result.results = array de packages. Filtre par tag regulation ou consultation. Clé de dédup: package.id."
+    },
+    {
+      "id": "assnat_qc_bills",
+      "name": "Assemblée nationale du Québec — Projets de loi",
+      "jurisdiction": "CA_QC",
+      "url": "https://www.assnat.qc.ca/fr/travaux-parlementaires/projets-loi/projets-loi-43-2.html",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas d'API publique. Page HTML listant les projets de loi de la session courante. URL pattern: projets-loi-{leg}-{session}.html. À mettre à jour à chaque prorogation. Bilingue: variante /en/parliamentary-proceedings/bills/."
+    },
+    {
+      "id": "gazette_qc_part2",
+      "name": "Gazette officielle du Québec — Partie 2 (lois et règlements)",
+      "jurisdiction": "CA_QC",
+      "url": "https://www.publicationsduquebec.gouv.qc.ca/gazette-officielle/partie-2-lois-et-reglements/",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Index HTML annuel (param tx_cspqgazette_cspqgazette[anneeCourante]). PDFs hebdomadaires à parser au besoin. Lourd."
+    },
+    {
+      "id": "consultation_qc",
+      "name": "Consultation Québec — Plateforme gouvernementale (Decidim)",
+      "jurisdiction": "CA_QC",
+      "url": "https://consultation.quebec.ca/api",
+      "adapter_type": "api",
+      "reliability": "core",
+      "enabled_by_default": false,
+      "fetch_notes": "DÉSACTIVÉE — l'endpoint /api refuse les requêtes anonymes (HTTP 403) au sweep 2026-05-31. La plateforme Decidim expose normalement un GraphQL read-only à /api/graphql (sandbox /api/graphiql) mais l'accès semble restreint. À réactiver si politique change. Limite documentée: 100 req/min/IP."
+    },
+    {
+      "id": "ola_bills",
+      "name": "Assemblée législative de l'Ontario — Projets de loi",
+      "jurisdiction": "CA_ON",
+      "url": "https://www.ola.org/en/legislative-business/bills/current",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas d'API/RSS. Liste HTML des projets de loi de la session courante. Variante FR: /fr/affaires-legislatives/projets-loi/actuels."
+    },
+    {
+      "id": "ontario_reg_registry",
+      "name": "Registre réglementaire de l'Ontario",
+      "jurisdiction": "CA_ON",
+      "url": "https://www.ontariocanada.com/registry/rssInfo.do?action=list",
+      "adapter_type": "rss",
+      "reliability": "core",
+      "enabled_by_default": false,
+      "fetch_notes": "DÉSACTIVÉE — domaine ontariocanada.com non joignable au sweep 2026-05-31 (HTTP 000, DNS ou serveur down). Pas de page de remplacement officielle identifiée pour le registre régulatoire général. Le Environmental Registry of Ontario (https://ero.ontario.ca) couvre l'environnement seulement. À réinvestiguer."
+    },
+    {
+      "id": "ontario_gazette",
+      "name": "Gazette de l'Ontario",
+      "jurisdiction": "CA_ON",
+      "url": "https://www.ontario.ca/search/ontario-gazette",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Aucun flux public. Page de recherche Ontario.ca renvoyant chaque numéro PDF. Dataset des dates de publication non ouvert."
+    },
+    {
+      "id": "bc_bills",
+      "name": "Assemblée législative de la Colombie-Britannique — Projets de loi",
+      "jurisdiction": "CA_BC",
+      "url": "https://www.leg.bc.ca/parliamentary-business/overview/43rd-parliament/2nd-session/bills",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas d'API. URL session courante: /parliamentary-business/overview/{n}-parliament/{n}-session/bills. L'URL d'origine /parliamentary-business/legislation-debates-proceedings renvoie 404 (constaté 2026-05-31). À mettre à jour à chaque nouvelle session/parlement."
+    },
+    {
+      "id": "bc_gazette",
+      "name": "Gazette de la Colombie-Britannique (Parties I et II)",
+      "jurisdiction": "CA_BC",
+      "url": "https://www.bclaws.gov.bc.ca/civix/content/bcgaz1/bcgaz1/?xsl=%2Ftemplates%2Fbrowse.xsl",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Hébergé sur BCLaws (CIVIX). Parties I (hebdo) et II (bi-mensuel). Pas de flux ; navigation par volume."
+    },
+    {
+      "id": "engage_bc",
+      "name": "govTogetherBC — Consultations publiques",
+      "jurisdiction": "CA_BC",
+      "url": "https://www2.gov.bc.ca/govtogetherbc/subscribe/rss/sitewide.page",
+      "adapter_type": "rss",
+      "reliability": "core",
+      "enabled_by_default": false,
+      "fetch_notes": "DÉSACTIVÉE — tous les chemins govTogetherBC retournent 404 au sweep 2026-05-31 (le service semble avoir été restructuré ou déplacé). Aucune URL RSS de remplacement identifiée. À réinvestiguer."
+    },
+    {
+      "id": "ab_bills",
+      "name": "Assemblée législative de l'Alberta — Projets de loi",
+      "jurisdiction": "CA_AB",
+      "url": "https://www.assembly.ab.ca/assembly-business/bills/bill-status",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux dédié. Page « Bill Status » avec liste et statut. Pour les PDFs, suivre les liens /bills-by-legislature."
+    },
+    {
+      "id": "ab_gazette",
+      "name": "Gazette de l'Alberta (King's Printer)",
+      "jurisdiction": "CA_AB",
+      "url": "https://kings-printer.alberta.ca/rss/RSS_QP_ALL.xml",
+      "adapter_type": "rss",
+      "reliability": "core",
+      "enabled_by_default": true,
+      "fetch_notes": "Flux RSS pan-législation. Couvre toutes publications légales (incl. Gazette parties 1 et 2). 27 flux ministériels granulaires aussi disponibles si besoin de filtrer."
+    },
+    {
+      "id": "mb_bills",
+      "name": "Assemblée législative du Manitoba — Projets de loi",
+      "jurisdiction": "CA_MB",
+      "url": "https://web2.gov.mb.ca/bills/43-3/index.php",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Liste HTML simple par session: /bills/{leg}-{session}/index.php. À mettre à jour à chaque changement de session."
+    },
+    {
+      "id": "mb_gazette",
+      "name": "Gazette du Manitoba",
+      "jurisdiction": "CA_MB",
+      "url": "https://gazette.gov.mb.ca/",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Page d'accueil liste les éditions hebdomadaires en cours par mois ; archives via index.html?d=list. PDFs."
+    },
+    {
+      "id": "sk_bills",
+      "name": "Assemblée législative de la Saskatchewan — Projets de loi",
+      "jurisdiction": "CA_SK",
+      "url": "https://www.legassembly.sk.ca/legislative-business/bills/",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Page bills courants + PDF « Progress of Bills » pour table consolidée."
+    },
+    {
+      "id": "sk_gazette",
+      "name": "Gazette de la Saskatchewan",
+      "jurisdiction": "CA_SK",
+      "url": "https://publications.saskatchewan.ca/api/v1/products?categoryId=216",
+      "adapter_type": "api",
+      "reliability": "core",
+      "enabled_by_default": true,
+      "fetch_notes": "Catalogue Publications Centre — API REST. URL d'origine /api/v1/products sans paramètre retournait ERR au sweep 2026-05-31 ; l'endpoint correct avec categoryId=216 (Gazette) retourne 200. Téléchargement PDF: /api/v1/products/{productId}/formats/{formatId}/download. Clé de dédup: product.id."
+    },
+    {
+      "id": "ns_bills",
+      "name": "Assemblée législative de la Nouvelle-Écosse — Projets de loi",
+      "jurisdiction": "CA_NS",
+      "url": "https://nslegislature.ca/legislative-business/bills-statutes/rss",
+      "adapter_type": "rss",
+      "reliability": "core",
+      "enabled_by_default": false,
+      "fetch_notes": "DÉSACTIVÉE — domaine nslegislature.ca non joignable au sweep 2026-05-31 (HTTP 000, possiblement downtime temporaire ou bloc géographique). L'URL est documentée comme un vrai flux RSS « Bill statuses for all current bills » avec mise à jour automatique. À réactiver au prochain check si le site répond."
+    },
+    {
+      "id": "ns_gazette",
+      "name": "Royal Gazette de la Nouvelle-Écosse (Parties I et II)",
+      "jurisdiction": "CA_NS",
+      "url": "https://novascotia.ca/just/regulations/rg2issues.htm",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Page Office of the Registrar of Regulations listant les PDFs Part II. Pour Part I: /just/regulations/rg1issues.htm."
+    },
+    {
+      "id": "nb_bills",
+      "name": "Assemblée législative du Nouveau-Brunswick — Projets de loi",
+      "jurisdiction": "CA_NB",
+      "url": "https://www.legnb.ca/en/legislation/bills",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Status of Bills pour la session courante via /en/legislation/bills/{leg}/{session}. Versions FR sur /fr/legislation/..."
+    },
+    {
+      "id": "nb_gazette",
+      "name": "Royal Gazette du Nouveau-Brunswick",
+      "jurisdiction": "CA_NB",
+      "url": "https://www.gnb.ca/en/gov/royal-gazette/royal-gazette-year.html",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Index par année avec PDFs hebdomadaires (mercredi). Bilingue (/fr/)."
+    },
+    {
+      "id": "nl_bills",
+      "name": "Newfoundland & Labrador House of Assembly — Projets de loi",
+      "jurisdiction": "CA_NL",
+      "url": "https://www.assembly.nl.ca/HouseBusiness/Bills/",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Index « Progress of Bills » par General Assembly/Session: .../ga51session1/."
+    },
+    {
+      "id": "nl_gazette",
+      "name": "Newfoundland & Labrador Gazette",
+      "jurisdiction": "CA_NL",
+      "url": "https://www.gov.nl.ca/gs/printer/gazette/weekly-issues/",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Index annuel listant les PDFs hebdomadaires (vendredis). Acrobat sécurisé (lecture seule)."
+    },
+    {
+      "id": "pei_bills",
+      "name": "Assemblée législative de l'Île-du-Prince-Édouard — Projets de loi",
+      "jurisdiction": "CA_PE",
+      "url": "https://www.assembly.pe.ca/legislative-business/house-records/bills",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "DÉSACTIVÉE — le site assembly.pe.ca redirige vers validate.perfdrive.com (challenge anti-bot Radware) lors d'un fetch automatisé. Contenu inaccessible sans interaction navigateur. Consultation manuelle uniquement."
+    },
+    {
+      "id": "pei_gazette",
+      "name": "Royal Gazette de l'Île-du-Prince-Édouard",
+      "jurisdiction": "CA_PE",
+      "url": "https://www.princeedwardisland.ca/en/publications/royal-gazette",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "DÉSACTIVÉE — même anti-bot Radware que pei_bills. Contenu inaccessible automatiquement."
+    },
+    {
+      "id": "yt_bills",
+      "name": "Assemblée législative du Yukon — Projets de loi",
+      "jurisdiction": "CA_YT",
+      "url": "https://yukonassembly.ca/house-business/progress-bills",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "DÉSACTIVÉE — yukonassembly.ca répond HTTP 403 même avec User-Agent navigateur réaliste. Bloc anti-bot. Volume territorial faible de toute façon."
+    },
+    {
+      "id": "nt_bills",
+      "name": "Assemblée législative des Territoires du Nord-Ouest — Projets de loi",
+      "jurisdiction": "CA_NT",
+      "url": "https://www.ntlegislativeassembly.ca/documents-proceedings/bills",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Tableau HTML paginé (~8 pages) avec étapes. Filtres par session."
+    },
+    {
+      "id": "nu_bills",
+      "name": "Assemblée législative du Nunavut — Projets de loi",
+      "jurisdiction": "CA_NU",
+      "url": "https://www.assembly.nu.ca/bills-and-legislation",
+      "adapter_type": "scraping",
+      "reliability": "best_effort",
+      "enabled_by_default": false,
+      "fetch_notes": "Pas de flux. Liste HTML des bills courants. Volume très faible."
+    },
+    {
+      "id": "federal_register_us",
+      "name": "US Federal Register — Documents",
+      "jurisdiction": "US_FED",
+      "url": "https://www.federalregister.gov/api/v1/documents.json?order=newest&per_page=100",
+      "adapter_type": "api",
+      "reliability": "core",
+      "enabled_by_default": true,
+      "fetch_notes": "API publique REST sans clé. CORS ouvert. Endpoints: /documents.json (search), /documents/{document_number}.json (détail). Pagination par per_page/page. Clé de dédup: document_number. Filtres utiles: conditions[agencies][]=<slug>, conditions[publication_date][gte]=<YYYY-MM-DD>, conditions[type][]=PROPOSED_RULE."
+    }
+  ]
+}

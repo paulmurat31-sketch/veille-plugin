@@ -1,0 +1,16 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Éditeurs
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Node (si on en ajoute un jour)
+node_modules/
+
+# Tests locaux — états utilisateur qui ne doivent jamais finir dans le repo
+.veille-test/
+sandbox/

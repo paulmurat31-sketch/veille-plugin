@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "veille",
+  "displayName": "Veille réglementaire",
+  "description": "Veille réglementaire personnelle pour juristes. Profil utilisateur, sweep de sources publiques, digest classé par pertinence et urgence, courriels prêts à envoyer en langage clair. Bilingue FR/EN, autonome, 100 % local.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": [
+    "veille",
+    "regulatory",
+    "compliance",
+    "legal",
+    "juridique",
+    "watch",
+    "monitoring",
+    "canada"
+  ]
+}
